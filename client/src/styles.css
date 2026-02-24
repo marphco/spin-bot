@@ -1,0 +1,260 @@
+:root {
+  --brand: #009fb7;
+  --bg: #edf5f9;
+  --bg-2: #dcebf3;
+  --text: #10252d;
+  --muted: #5e7882;
+  --bubble-surface: #f9fcfd;
+  --ring: rgba(0, 159, 183, 0.33);
+  --glow: rgba(0, 159, 183, 0.16);
+}
+
+:root[data-theme='dark'] {
+  --bg: #04131b;
+  --bg-2: #082231;
+  --text: #e8f6f9;
+  --muted: #9db8c1;
+  --bubble-surface: #163342;
+  --ring: rgba(93, 215, 234, 0.4);
+  --glow: rgba(0, 159, 183, 0.22);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  background:
+    radial-gradient(1200px 700px at 12% 12%, var(--glow), transparent 60%),
+    radial-gradient(1000px 700px at 90% 85%, var(--glow), transparent 66%),
+    linear-gradient(160deg, var(--bg), var(--bg-2));
+  transition: background 0.75s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.45s ease;
+}
+
+button, input { font: inherit; }
+
+.app-shell {
+  min-height: 100vh;
+  padding: 0.85rem;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 0.5rem;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo { width: clamp(122px, 34vw, 192px); }
+
+.theme-toggle { border: 0; background: transparent; padding: 0; cursor: pointer; }
+
+.theme-track {
+  width: 66px;
+  height: 37px;
+  border-radius: 999px;
+  border: 1px solid var(--ring);
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  background: color-mix(in srgb, var(--bubble-surface) 82%, transparent);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+  transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+}
+
+.theme-thumb {
+  width: 27px;
+  height: 27px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #ffffff, #eff9fd);
+  transform: translateX(0);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), background 0.45s ease;
+}
+
+.theme-toggle.is-dark .theme-thumb {
+  transform: translateX(28px);
+  background: linear-gradient(145deg, #24485a, #132a35);
+}
+
+.experience {
+  min-height: calc(100vh - 86px);
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+}
+
+.orbital-zone {
+  position: relative;
+  min-height: 58vh;
+}
+
+.bubble-btn {
+  position: absolute;
+  width: 122px;
+  height: 108px;
+  border-radius: 44% 56% 52% 48% / 50% 46% 54% 50%;
+  border: 2px solid color-mix(in srgb, var(--brand) 44%, white 10%);
+  background: var(--bubble-surface);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  box-shadow:
+    0 20px 28px rgba(0, 0, 0, 0.14),
+    0 0 0 6px color-mix(in srgb, var(--brand) 9%, transparent);
+  transition: transform 0.2s ease, box-shadow 0.35s ease, background 0.45s ease, border-color 0.45s ease;
+}
+
+.bubble-btn:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow:
+    0 24px 32px rgba(0, 0, 0, 0.18),
+    0 0 0 7px color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+.bubble-btn strong { font-size: 0.69rem; line-height: 1.05; text-align: center; }
+.bubble-icon { font-size: 1.38rem; }
+
+.bubble-1 { left: 11%; top: 1%; }
+.bubble-2 { right: 11%; top: 3%; }
+.bubble-3 { left: 1%; top: 30%; }
+.bubble-4 { right: 1%; top: 30%; }
+.bubble-5 { left: 50%; top: 44%; transform: translateX(-50%); width: 148px; height: 130px; }
+.bubble-6 { left: 11%; top: 61%; }
+.bubble-7 { right: 11%; top: 61%; }
+
+.composer {
+  width: min(760px, calc(100vw - 1.7rem));
+  margin-inline: auto;
+}
+
+.composer.is-standalone {
+  margin-top: -0.2rem;
+}
+
+.composer.is-docked {
+  position: sticky;
+  bottom: 0.65rem;
+}
+
+.chat-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  border: 1px solid var(--ring);
+  background: color-mix(in srgb, var(--bubble-surface) 87%, transparent);
+  border-radius: 999px;
+  padding: 0.3rem;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+  transition: background 0.45s ease, border-color 0.45s ease;
+}
+
+.chat-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0 0.8rem;
+}
+
+.chat-input-wrap input:focus { outline: none; }
+
+.chat-input-wrap button {
+  border: 0;
+  min-height: 42px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0 1rem;
+}
+
+.content-zone h1 { margin: 0; font-size: 1.9rem; }
+
+.hero-image {
+  margin-top: 0.7rem;
+  width: 100%;
+  border-radius: 18px;
+  max-height: 220px;
+  object-fit: cover;
+}
+
+.chat-stream {
+  margin-top: 0.78rem;
+  display: grid;
+  gap: 0.55rem;
+  max-height: 32vh;
+  overflow: auto;
+}
+
+.msg {
+  padding: 0.12rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: clamp(1rem, 2.7vw, 1.08rem);
+}
+
+.msg-user {
+  color: color-mix(in srgb, var(--brand) 82%, white 18%);
+  font-weight: 600;
+}
+
+.msg-assistant {
+  color: var(--text);
+}
+
+.dock-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.42rem;
+  margin-bottom: 0.46rem;
+}
+
+.dock-btn {
+  border: 1px solid var(--ring);
+  border-radius: 999px;
+  min-height: 56px;
+  background: color-mix(in srgb, var(--bubble-surface) 72%, transparent);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.13rem;
+}
+
+.dock-btn small { font-size: 0.66rem; }
+.dock-btn.is-active { background: var(--brand); color: #fff; border-color: transparent; }
+
+.hint-list {
+  margin-top: 0.48rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.hint-list button {
+  border: 1px solid var(--ring);
+  background: color-mix(in srgb, var(--bubble-surface) 72%, transparent);
+  border-radius: 999px;
+  color: var(--muted);
+  padding: 0.35rem 0.72rem;
+}
+
+@media (min-width: 900px) {
+  .app-shell { padding: 1rem 1.5rem; }
+  .orbital-zone { min-height: 63vh; }
+  .bubble-btn { width: 142px; height: 126px; }
+  .bubble-5 { width: 178px; height: 156px; }
+  .dock-buttons { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+}
