@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import logo from './assets/logo.svg';
 
 const sections = [
   { id: 'siamo', label: 'SIAMO', icon: '🌱' },
@@ -28,13 +27,14 @@ function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
-  const hasSelection = Boolean(activeSection);
+  const headerText = useMemo(() => {
+    if (activeSection && sectionData) return `${sectionData.title}`;
+    return 'Benvenuto in Spin Factor';
+  }, [activeSection, sectionData]);
 
   const onSelectSection = async (sectionId) => {
-    if (isLoading && sectionId === activeSection) return;
     setIsLoading(true);
     setActiveSection(sectionId);
-
     try {
       const response = await fetch(`/api/sections/${sectionId}`);
       const data = await response.json();
@@ -64,8 +64,8 @@ function App() {
       });
       const data = await response.json();
       setMessages((prev) => [...prev, { role: 'assistant', text: data.answer }]);
-
       if (data.showContacts) {
+        setActiveSection('contatti');
         await onSelectSection('contatti');
       }
     } catch (_err) {
@@ -76,49 +76,67 @@ function App() {
     }
   };
 
-  const visibleHints = useMemo(() => (sectionData?.hints || []).slice(0, 2), [sectionData]);
-
   return (
-    <div className={`app-shell ${hasSelection ? 'has-selection' : ''}`}>
+    <div className="app-shell">
       <header className="top-bar">
-        <img src={logo} alt="Spin Factor logo" className="logo" />
+        <div className="logo">SPIN FACTOR</div>
         <button
           className="theme-toggle"
           onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
           type="button"
-          aria-label="Cambia tema"
         >
-          <span className="theme-dot">{theme === 'light' ? '🌙' : '☀️'}</span>
+          <span>{theme === 'light' ? '🌙' : '☀️'}</span>
         </button>
       </header>
 
-      <main className="main-stage">
-        {!hasSelection && (
-          <section className="hero-area" aria-label="Sezioni principali">
-            {sections.map((section, index) => (
+      <main className="layout">
+        <section className="hub-panel">
+          <h1>{headerText}</h1>
+          <div className="buttons-grid">
+            {sections.map((section) => (
               <button
                 key={section.id}
-                className={`bubble-btn bubble-${index + 1}`}
+                className={`hub-btn ${activeSection === section.id ? 'is-active' : ''}`}
                 type="button"
                 onClick={() => onSelectSection(section.id)}
               >
-                <span className="bubble-icon">{section.icon}</span>
+                <span>{section.icon}</span>
                 <strong>{section.label}</strong>
               </button>
             ))}
-          </section>
-        )}
+          </div>
 
-        <section className="conversation-area">
-          {hasSelection ? (
-            <>
-              <h1>{sectionData?.title || 'Spin Factor'}</h1>
-              {sectionData?.image && <img src={sectionData.image} alt={sectionData.title} className="hero-image" />}
-            </>
-          ) : (
-            <h1>Scegli un tema o fai una domanda</h1>
+          <form className="chat-input-wrap" onSubmit={onSubmit}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              placeholder="Chiedimi qualsiasi cosa su Spin Factor..."
+            />
+            <button type="submit" disabled={isLoading}>
+              Invia
+            </button>
+          </form>
+
+          {sectionData?.hints?.length > 0 && (
+            <div className="hint-list">
+              {sectionData.hints.map((hint) => (
+                <button
+                  key={hint}
+                  type="button"
+                  onClick={() => {
+                    setInputValue(hint);
+                  }}
+                >
+                  {hint}
+                </button>
+              ))}
+            </div>
           )}
+        </section>
 
+        <section className="content-panel">
+          {sectionData?.image && <img src={sectionData.image} alt={sectionData.title} />}
           <div className="chat-stream">
             {messages.map((message, index) => (
               <article key={`${message.role}-${index}`} className={`msg msg-${message.role}`}>
@@ -129,44 +147,6 @@ function App() {
           </div>
         </section>
       </main>
-
-      <footer className="bottom-dock">
-        <div className="dock-buttons" role="tablist" aria-label="Navigazione sezioni">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              className={`dock-btn ${activeSection === section.id ? 'is-active' : ''}`}
-              type="button"
-              onClick={() => onSelectSection(section.id)}
-            >
-              <span>{section.icon}</span>
-              <small>{section.label}</small>
-            </button>
-          ))}
-        </div>
-
-        <form className="chat-input-wrap" onSubmit={onSubmit}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
-            placeholder="Scrivi qui la tua domanda..."
-          />
-          <button type="submit" disabled={isLoading}>
-            Invia
-          </button>
-        </form>
-
-        {visibleHints.length > 0 && (
-          <div className="hint-list">
-            {visibleHints.map((hint) => (
-              <button key={hint} type="button" onClick={() => setInputValue(hint)}>
-                {hint}
-              </button>
-            ))}
-          </div>
-        )}
-      </footer>
     </div>
   );
 }
