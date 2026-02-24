@@ -49,6 +49,12 @@ function App() {
     }));
   };
 
+  const goHome = () => {
+    setActiveSection(null);
+    setSectionData(null);
+    setInputValue('');
+  };
+
   const ensureSectionStarter = (sectionId, description) => {
     setChatsBySection((prev) => {
       if (prev[sectionId]?.length) return prev;
@@ -160,6 +166,10 @@ function App() {
         <section className={`composer ${hasSelection ? 'is-docked' : 'is-standalone'}`}>
           {hasSelection && (
             <div className="dock-buttons" role="tablist" aria-label="Navigazione sezioni">
+              <button className="dock-btn dock-home" type="button" onClick={goHome}>
+                <span>🏠</span>
+                <small>HOME</small>
+              </button>
               {sections.map((section) => (
                 <button
                   key={section.id}

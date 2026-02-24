@@ -30,7 +30,7 @@ body {
     radial-gradient(1200px 700px at 12% 12%, var(--glow), transparent 60%),
     radial-gradient(1000px 700px at 90% 85%, var(--glow), transparent 66%),
     linear-gradient(160deg, var(--bg), var(--bg-2));
-  transition: background 0.75s cubic-bezier(0.25, 0.8, 0.25, 1), color 0.45s ease;
+  transition: background 0.9s cubic-bezier(0.22, 1, 0.36, 1), color 0.55s ease;
 }
 
 button, input { font: inherit; }
@@ -63,7 +63,7 @@ button, input { font: inherit; }
   align-items: center;
   background: color-mix(in srgb, var(--bubble-surface) 82%, transparent);
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
-  transition: background 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+  transition: background 0.65s ease, border-color 0.65s ease, box-shadow 0.65s ease;
 }
 
 .theme-thumb {
@@ -74,7 +74,7 @@ button, input { font: inherit; }
   place-items: center;
   background: linear-gradient(145deg, #ffffff, #eff9fd);
   transform: translateX(0);
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), background 0.45s ease;
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), background 0.6s ease;
 }
 
 .theme-toggle.is-dark .theme-thumb {
@@ -91,14 +91,22 @@ button, input { font: inherit; }
 
 .orbital-zone {
   position: relative;
-  min-height: 58vh;
+  width: min(950px, 100%);
+  min-height: 54vh;
+  max-height: 62vh;
+  margin: 0 auto;
 }
 
 .bubble-btn {
+  --x: 0px;
+  --y: 0px;
+  --scale: 1;
   position: absolute;
-  width: 122px;
-  height: 108px;
-  border-radius: 44% 56% 52% 48% / 50% 46% 54% 50%;
+  left: var(--x);
+  top: var(--y);
+  width: 106px;
+  height: 96px;
+  border-radius: 47% 53% 50% 50% / 49% 46% 54% 51%;
   border: 2px solid color-mix(in srgb, var(--brand) 44%, white 10%);
   background: var(--bubble-surface);
   color: var(--text);
@@ -108,37 +116,37 @@ button, input { font: inherit; }
   justify-content: center;
   gap: 0.2rem;
   box-shadow:
-    0 20px 28px rgba(0, 0, 0, 0.14),
-    0 0 0 6px color-mix(in srgb, var(--brand) 9%, transparent);
+    0 18px 24px rgba(0, 0, 0, 0.14),
+    0 0 0 6px color-mix(in srgb, var(--brand) 8%, transparent);
+  transform: scale(var(--scale));
+  transform-origin: center;
   transition: transform 0.2s ease, box-shadow 0.35s ease, background 0.45s ease, border-color 0.45s ease;
 }
 
 .bubble-btn:hover {
-  transform: translateY(-3px) scale(1.01);
+  transform: scale(calc(var(--scale) + 0.03));
   box-shadow:
-    0 24px 32px rgba(0, 0, 0, 0.18),
+    0 22px 30px rgba(0, 0, 0, 0.18),
     0 0 0 7px color-mix(in srgb, var(--brand) 14%, transparent);
 }
 
-.bubble-btn strong { font-size: 0.69rem; line-height: 1.05; text-align: center; }
-.bubble-icon { font-size: 1.38rem; }
+.bubble-btn strong { font-size: 0.68rem; line-height: 1.05; text-align: center; }
+.bubble-icon { font-size: 1.3rem; }
 
-.bubble-1 { left: 11%; top: 1%; }
-.bubble-2 { right: 11%; top: 3%; }
-.bubble-3 { left: 1%; top: 30%; }
-.bubble-4 { right: 1%; top: 30%; }
-.bubble-5 { left: 50%; top: 44%; transform: translateX(-50%); width: 148px; height: 130px; }
-.bubble-6 { left: 11%; top: 61%; }
-.bubble-7 { right: 11%; top: 61%; }
+.bubble-1 { --x: 14%; --y: 7%; }
+.bubble-2 { --x: 65%; --y: 8%; }
+.bubble-3 { --x: 5%; --y: 33%; }
+.bubble-4 { --x: 74%; --y: 35%; }
+.bubble-5 { --x: 41%; --y: 49%; --scale: 1.24; }
+.bubble-6 { --x: 16%; --y: 63%; }
+.bubble-7 { --x: 64%; --y: 63%; }
 
 .composer {
   width: min(760px, calc(100vw - 1.7rem));
   margin-inline: auto;
 }
 
-.composer.is-standalone {
-  margin-top: -0.2rem;
-}
+.composer.is-standalone { margin-top: 0.15rem; }
 
 .composer.is-docked {
   position: sticky;
@@ -154,7 +162,7 @@ button, input { font: inherit; }
   border-radius: 999px;
   padding: 0.3rem;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
-  transition: background 0.45s ease, border-color 0.45s ease;
+  transition: background 0.55s ease, border-color 0.55s ease;
 }
 
 .chat-input-wrap input {
@@ -176,6 +184,11 @@ button, input { font: inherit; }
   background: var(--brand);
   color: #fff;
   padding: 0 1rem;
+}
+
+.content-zone {
+  width: min(900px, 100%);
+  margin: 0 auto;
 }
 
 .content-zone h1 { margin: 0; font-size: 1.9rem; }
@@ -209,9 +222,7 @@ button, input { font: inherit; }
   font-weight: 600;
 }
 
-.msg-assistant {
-  color: var(--text);
-}
+.msg-assistant { color: var(--text); }
 
 .dock-buttons {
   display: grid;
@@ -223,7 +234,7 @@ button, input { font: inherit; }
 .dock-btn {
   border: 1px solid var(--ring);
   border-radius: 999px;
-  min-height: 56px;
+  min-height: 54px;
   background: color-mix(in srgb, var(--bubble-surface) 72%, transparent);
   color: var(--text);
   display: flex;
@@ -233,8 +244,9 @@ button, input { font: inherit; }
   gap: 0.13rem;
 }
 
-.dock-btn small { font-size: 0.66rem; }
-.dock-btn.is-active { background: var(--brand); color: #fff; border-color: transparent; }
+.dock-btn small { font-size: 0.64rem; }
+.dock-btn.is-active,
+.dock-btn.dock-home { background: var(--brand); color: #fff; border-color: transparent; }
 
 .hint-list {
   margin-top: 0.48rem;
@@ -253,8 +265,23 @@ button, input { font: inherit; }
 
 @media (min-width: 900px) {
   .app-shell { padding: 1rem 1.5rem; }
-  .orbital-zone { min-height: 63vh; }
-  .bubble-btn { width: 142px; height: 126px; }
-  .bubble-5 { width: 178px; height: 156px; }
-  .dock-buttons { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .orbital-zone {
+    min-height: 60vh;
+    max-height: 68vh;
+  }
+
+  .bubble-btn {
+    width: 150px;
+    height: 134px;
+  }
+
+  .bubble-1 { --x: 18%; --y: 10%; }
+  .bubble-2 { --x: 64%; --y: 10%; }
+  .bubble-3 { --x: 9%; --y: 35%; }
+  .bubble-4 { --x: 73%; --y: 35%; }
+  .bubble-5 { --x: 42%; --y: 50%; --scale: 1.24; }
+  .bubble-6 { --x: 22%; --y: 68%; }
+  .bubble-7 { --x: 60%; --y: 68%; }
+
+  .dock-buttons { grid-template-columns: repeat(8, minmax(0, 1fr)); }
 }
