@@ -11,16 +11,13 @@ const sections = [
   { id: 'contatti', label: 'CONTATTI', icon: '📞' }
 ];
 
-const starterMessage = {
-  role: 'assistant',
-  text: 'Ciao 👋 Sono Spin Bot. Tocca un pulsante per iniziare o scrivi una domanda nella barra centrale.'
-};
+const CHAT_STORAGE_KEY = 'spinbot-chat-by-section';
 
 function App() {
   const [theme, setTheme] = useState('light');
   const [activeSection, setActiveSection] = useState(null);
   const [sectionData, setSectionData] = useState(null);
-  const [messages, setMessages] = useState([starterMessage]);
+  const [chatsBySection, setChatsBySection] = useState({});
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,10 +25,48 @@ function App() {
     document.documentElement.dataset.theme = theme;
   }, [theme]);
 
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+      if (saved) {
+        setChatsBySection(JSON.parse(saved));
+      }
+    } catch (_err) {
+      setChatsBySection({});
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatsBySection));
+  }, [chatsBySection]);
+
+  const currentThreadKey = activeSection || 'general';
+  const currentMessages = chatsBySection[currentThreadKey] || [];
   const hasSelection = Boolean(activeSection);
+
+  const upsertMessage = (threadKey, message) => {
+    setChatsBySection((prev) => {
+      const thread = prev[threadKey] || [];
+      return {
+        ...prev,
+        [threadKey]: [...thread, message]
+      };
+    });
+  };
+
+  const ensureSectionStarter = (sectionId, description) => {
+    setChatsBySection((prev) => {
+      if (prev[sectionId]?.length) return prev;
+      return {
+        ...prev,
+        [sectionId]: [{ role: 'assistant', text: description }]
+      };
+    });
+  };
 
   const onSelectSection = async (sectionId) => {
     if (isLoading && sectionId === activeSection) return;
+
     setIsLoading(true);
     setActiveSection(sectionId);
 
@@ -39,9 +74,38 @@ function App() {
       const response = await fetch(`/api/sections/${sectionId}`);
       const data = await response.json();
       setSectionData(data);
-      setMessages((prev) => [...prev, { role: 'assistant', text: data.description }]);
+      ensureSectionStarter(sectionId, data.description);
     } catch (_err) {
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Ops! Non riesco a recuperare il contenuto al momento.' }]);
+      upsertMessage(sectionId, { role: 'assistant', text: 'Ops! Non riesco a recuperare il contenuto al momento.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendQuestion = async (questionText) => {
+    const question = questionText.trim();
+    if (!question) return;
+
+    const threadKey = activeSection || 'general';
+    upsertMessage(threadKey, { role: 'user', text: question });
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, activeSection })
+      });
+      const data = await response.json();
+
+      upsertMessage(threadKey, { role: 'assistant', text: data.answer });
+
+      if (data.showContacts) {
+        await onSelectSection('contatti');
+      }
+    } catch (_err) {
+      upsertMessage(threadKey, { role: 'assistant', text: 'Errore temporaneo. Riprova tra poco 🙏' });
     } finally {
       setIsLoading(false);
     }
@@ -49,31 +113,7 @@ function App() {
 
   const onSubmit = async (event) => {
     event.preventDefault();
-    if (!inputValue.trim()) return;
-
-    const userMessage = inputValue;
-    setInputValue('');
-    setMessages((prev) => [...prev, { role: 'user', text: userMessage }]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: userMessage, activeSection })
-      });
-      const data = await response.json();
-      setMessages((prev) => [...prev, { role: 'assistant', text: data.answer }]);
-
-      if (data.showContacts) {
-        await onSelectSection('contatti');
-      }
-    } catch (_err) {
-      setMessages((prev) => [...prev, { role: 'assistant', text: 'Errore temporaneo. Riprova tra poco 🙏' }]);
-      setIsLoading(false);
-    } finally {
-      setIsLoading(false);
-    }
+    await sendQuestion(inputValue);
   };
 
   const visibleHints = useMemo(() => (sectionData?.hints || []).slice(0, 2), [sectionData]);
@@ -82,19 +122,22 @@ function App() {
     <div className={`app-shell ${hasSelection ? 'has-selection' : ''}`}>
       <header className="top-bar">
         <img src={logo} alt="Spin Factor logo" className="logo" />
+
         <button
-          className="theme-toggle"
+          className={`theme-toggle ${theme === 'dark' ? 'is-dark' : ''}`}
           onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
           type="button"
           aria-label="Cambia tema"
         >
-          <span className="theme-dot">{theme === 'light' ? '🌙' : '☀️'}</span>
+          <span className="theme-track">
+            <span className="theme-thumb">{theme === 'light' ? '☀️' : '🌙'}</span>
+          </span>
         </button>
       </header>
 
-      <main className="main-stage">
+      <main className="experience">
         {!hasSelection && (
-          <section className="hero-area" aria-label="Sezioni principali">
+          <section className="orbital-zone" aria-label="Sezioni principali">
             {sections.map((section, index) => (
               <button
                 key={section.id}
@@ -109,7 +152,7 @@ function App() {
           </section>
         )}
 
-        <section className="conversation-area">
+        <section className="content-zone">
           {hasSelection ? (
             <>
               <h1>{sectionData?.title || 'Spin Factor'}</h1>
@@ -119,54 +162,58 @@ function App() {
             <h1>Scegli un tema o fai una domanda</h1>
           )}
 
-          <div className="chat-stream">
-            {messages.map((message, index) => (
-              <article key={`${message.role}-${index}`} className={`msg msg-${message.role}`}>
-                {message.text}
-              </article>
-            ))}
-            {isLoading && <article className="msg msg-assistant">Sto recuperando le informazioni...</article>}
-          </div>
+          {currentMessages.length > 0 && (
+            <div className="chat-stream">
+              {currentMessages.map((message, index) => (
+                <article key={`${message.role}-${index}`} className={`msg msg-${message.role}`}>
+                  {message.text}
+                </article>
+              ))}
+              {isLoading && <article className="msg msg-assistant">Sto recuperando le informazioni...</article>}
+            </div>
+          )}
+        </section>
+
+        <section className={`composer ${hasSelection ? 'is-docked' : 'is-centered'}`}>
+          {hasSelection && (
+            <div className="dock-buttons" role="tablist" aria-label="Navigazione sezioni">
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  className={`dock-btn dock-${section.id} ${activeSection === section.id ? 'is-active' : ''}`}
+                  type="button"
+                  onClick={() => onSelectSection(section.id)}
+                >
+                  <span>{section.icon}</span>
+                  <small>{section.label}</small>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <form className="chat-input-wrap" onSubmit={onSubmit}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(event) => setInputValue(event.target.value)}
+              placeholder="Scrivi qui la tua domanda..."
+            />
+            <button type="submit" disabled={isLoading}>
+              Invia
+            </button>
+          </form>
+
+          {hasSelection && visibleHints.length > 0 && (
+            <div className="hint-list">
+              {visibleHints.map((hint) => (
+                <button key={hint} type="button" onClick={() => sendQuestion(hint)}>
+                  {hint}
+                </button>
+              ))}
+            </div>
+          )}
         </section>
       </main>
-
-      <footer className="bottom-dock">
-        <div className="dock-buttons" role="tablist" aria-label="Navigazione sezioni">
-          {sections.map((section) => (
-            <button
-              key={section.id}
-              className={`dock-btn ${activeSection === section.id ? 'is-active' : ''}`}
-              type="button"
-              onClick={() => onSelectSection(section.id)}
-            >
-              <span>{section.icon}</span>
-              <small>{section.label}</small>
-            </button>
-          ))}
-        </div>
-
-        <form className="chat-input-wrap" onSubmit={onSubmit}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(event) => setInputValue(event.target.value)}
-            placeholder="Scrivi qui la tua domanda..."
-          />
-          <button type="submit" disabled={isLoading}>
-            Invia
-          </button>
-        </form>
-
-        {visibleHints.length > 0 && (
-          <div className="hint-list">
-            {visibleHints.map((hint) => (
-              <button key={hint} type="button" onClick={() => setInputValue(hint)}>
-                {hint}
-              </button>
-            ))}
-          </div>
-        )}
-      </footer>
     </div>
   );
 }
