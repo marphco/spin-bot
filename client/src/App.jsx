@@ -28,9 +28,7 @@ function App() {
   useEffect(() => {
     try {
       const saved = localStorage.getItem(CHAT_STORAGE_KEY);
-      if (saved) {
-        setChatsBySection(JSON.parse(saved));
-      }
+      if (saved) setChatsBySection(JSON.parse(saved));
     } catch (_err) {
       setChatsBySection({});
     }
@@ -45,28 +43,21 @@ function App() {
   const hasSelection = Boolean(activeSection);
 
   const upsertMessage = (threadKey, message) => {
-    setChatsBySection((prev) => {
-      const thread = prev[threadKey] || [];
-      return {
-        ...prev,
-        [threadKey]: [...thread, message]
-      };
-    });
+    setChatsBySection((prev) => ({
+      ...prev,
+      [threadKey]: [...(prev[threadKey] || []), message]
+    }));
   };
 
   const ensureSectionStarter = (sectionId, description) => {
     setChatsBySection((prev) => {
       if (prev[sectionId]?.length) return prev;
-      return {
-        ...prev,
-        [sectionId]: [{ role: 'assistant', text: description }]
-      };
+      return { ...prev, [sectionId]: [{ role: 'assistant', text: description }] };
     });
   };
 
   const onSelectSection = async (sectionId) => {
     if (isLoading && sectionId === activeSection) return;
-
     setIsLoading(true);
     setActiveSection(sectionId);
 
@@ -98,12 +89,9 @@ function App() {
         body: JSON.stringify({ question, activeSection })
       });
       const data = await response.json();
-
       upsertMessage(threadKey, { role: 'assistant', text: data.answer });
 
-      if (data.showContacts) {
-        await onSelectSection('contatti');
-      }
+      if (data.showContacts) await onSelectSection('contatti');
     } catch (_err) {
       upsertMessage(threadKey, { role: 'assistant', text: 'Errore temporaneo. Riprova tra poco 🙏' });
     } finally {
@@ -122,7 +110,6 @@ function App() {
     <div className={`app-shell ${hasSelection ? 'has-selection' : ''}`}>
       <header className="top-bar">
         <img src={logo} alt="Spin Factor logo" className="logo" />
-
         <button
           className={`theme-toggle ${theme === 'dark' ? 'is-dark' : ''}`}
           onClick={() => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'))}
@@ -152,35 +139,31 @@ function App() {
           </section>
         )}
 
-        <section className="content-zone">
-          {hasSelection ? (
-            <>
-              <h1>{sectionData?.title || 'Spin Factor'}</h1>
-              {sectionData?.image && <img src={sectionData.image} alt={sectionData.title} className="hero-image" />}
-            </>
-          ) : (
-            <h1>Scegli un tema o fai una domanda</h1>
-          )}
+        {hasSelection && (
+          <section className="content-zone">
+            <h1>{sectionData?.title || 'Spin Factor'}</h1>
+            {sectionData?.image && <img src={sectionData.image} alt={sectionData.title} className="hero-image" />}
 
-          {currentMessages.length > 0 && (
-            <div className="chat-stream">
-              {currentMessages.map((message, index) => (
-                <article key={`${message.role}-${index}`} className={`msg msg-${message.role}`}>
-                  {message.text}
-                </article>
-              ))}
-              {isLoading && <article className="msg msg-assistant">Sto recuperando le informazioni...</article>}
-            </div>
-          )}
-        </section>
+            {currentMessages.length > 0 && (
+              <div className="chat-stream">
+                {currentMessages.map((message, index) => (
+                  <article key={`${message.role}-${index}`} className={`msg msg-${message.role}`}>
+                    {message.text}
+                  </article>
+                ))}
+                {isLoading && <article className="msg msg-assistant">Sto recuperando le informazioni...</article>}
+              </div>
+            )}
+          </section>
+        )}
 
-        <section className={`composer ${hasSelection ? 'is-docked' : 'is-centered'}`}>
+        <section className={`composer ${hasSelection ? 'is-docked' : 'is-standalone'}`}>
           {hasSelection && (
             <div className="dock-buttons" role="tablist" aria-label="Navigazione sezioni">
               {sections.map((section) => (
                 <button
                   key={section.id}
-                  className={`dock-btn dock-${section.id} ${activeSection === section.id ? 'is-active' : ''}`}
+                  className={`dock-btn ${activeSection === section.id ? 'is-active' : ''}`}
                   type="button"
                   onClick={() => onSelectSection(section.id)}
                 >
@@ -198,9 +181,7 @@ function App() {
               onChange={(event) => setInputValue(event.target.value)}
               placeholder="Scrivi qui la tua domanda..."
             />
-            <button type="submit" disabled={isLoading}>
-              Invia
-            </button>
+            <button type="submit" disabled={isLoading}>Invia</button>
           </form>
 
           {hasSelection && visibleHints.length > 0 && (
