@@ -8,14 +8,10 @@ Starter full-stack mobile-first con:
 
 ## Avvio rapido
 
-Opzione consigliata (workspace install da root):
-
 ```bash
-npm install --workspaces
+npm install
 npm run dev
 ```
-
-Se hai già installato dipendenze dentro `client/` e `server/`, `npm run dev` dalla root funziona comunque.
 
 - Frontend: http://localhost:5173
 - API: http://localhost:4000
