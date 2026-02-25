@@ -1,25 +1,34 @@
 import { useEffect, useMemo, useState } from 'react';
 import logo from './assets/logo.svg';
+import lightIcon from './assets/light.svg';
+import darkIcon from './assets/dark.svg';
 
 const sections = [
-  { id: 'siamo', label: 'SIAMO', icon: '🌱' },
-  { id: 'facciamo', label: 'FACCIAMO', icon: '🛠️' },
-  { id: 'diciamo', label: 'DICIAMO', icon: '💬' },
-  { id: 'organizziamo', label: 'ORGANIZZIAMO', icon: '📅' },
-  { id: 'tiberio', label: 'TIBERIO', icon: '🧠' },
-  { id: 'human-data', label: 'HUMAN DATA', icon: '📊' },
-  { id: 'contatti', label: 'CONTATTI', icon: '📞' }
+  { id: 'siamo', label: 'SIAMO', title: 'Siamo', icon: '🌱' },
+  { id: 'facciamo', label: 'FACCIAMO', title: 'Facciamo', icon: '🛠️' },
+  { id: 'diciamo', label: 'DICIAMO', title: 'Diciamo', icon: '💬' },
+  { id: 'organizziamo', label: 'ORGANIZZIAMO', title: 'Organizziamo', icon: '📅' },
+  { id: 'tiberio', label: 'TIBERIO', title: 'Tiberio', icon: '🧠' },
+  { id: 'human-data', label: 'HUMAN DATA', title: 'Human Data', icon: '📊' },
+  { id: 'contatti', label: 'CONTATTI', title: 'Contatti', icon: '📞' }
 ];
 
 const CHAT_STORAGE_KEY = 'spinbot-chat-by-section';
 
 function App() {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
   const [activeSection, setActiveSection] = useState(null);
   const [sectionData, setSectionData] = useState(null);
   const [chatsBySection, setChatsBySection] = useState({});
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const [name, setName] = useState('');
+  const [emailField, setEmailField] = useState('');
+  const [message, setMessage] = useState('');
+  const [hp, setHp] = useState('');
+  const [status, setStatus] = useState('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -41,11 +50,12 @@ function App() {
   const currentThreadKey = activeSection || 'general';
   const currentMessages = chatsBySection[currentThreadKey] || [];
   const hasSelection = Boolean(activeSection);
+  const activeSectionMeta = sections.find((section) => section.id === activeSection);
 
-  const upsertMessage = (threadKey, message) => {
+  const upsertMessage = (threadKey, newMessage) => {
     setChatsBySection((prev) => ({
       ...prev,
-      [threadKey]: [...(prev[threadKey] || []), message]
+      [threadKey]: [...(prev[threadKey] || []), newMessage]
     }));
   };
 
@@ -110,6 +120,36 @@ function App() {
     await sendQuestion(inputValue);
   };
 
+  const onContactSubmit = async (event) => {
+    event.preventDefault();
+    setStatus('sending');
+    setErrorMsg('');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email: emailField, message, company: hp })
+      });
+
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        setStatus('error');
+        setErrorMsg(data?.error || 'Errore invio. Riprova.');
+        return;
+      }
+
+      setStatus('ok');
+      setName('');
+      setEmailField('');
+      setMessage('');
+      setHp('');
+    } catch (_err) {
+      setStatus('error');
+      setErrorMsg('Errore di rete. Riprova.');
+    }
+  };
+
   const visibleHints = useMemo(() => (sectionData?.hints || []).slice(0, 2), [sectionData]);
 
   return (
@@ -123,7 +163,9 @@ function App() {
           aria-label="Cambia tema"
         >
           <span className="theme-track">
-            <span className="theme-thumb">{theme === 'light' ? '☀️' : '🌙'}</span>
+            <span className="theme-thumb">
+              <img src={theme === 'light' ? lightIcon : darkIcon} alt="" />
+            </span>
           </span>
         </button>
       </header>
@@ -147,14 +189,30 @@ function App() {
 
         {hasSelection && (
           <section className="content-zone">
-            <h1>{sectionData?.title || 'Spin Factor'}</h1>
             {sectionData?.image && <img src={sectionData.image} alt={sectionData.title} className="hero-image" />}
+            <h1>{activeSectionMeta?.title || sectionData?.title}</h1>
 
-            {currentMessages.length > 0 && (
+            {activeSection === 'contatti' ? (
+              <section className="contact-block">
+                <p>Spin Factor s.r.l. · segreteria@spinfactor.it</p>
+                <p>via della Scrofa, 117 – 00186 Roma · via Vittoria Colonna, 14 – 80121 Napoli</p>
+                <p>P. IVA 08521911217</p>
+
+                <form className="contact-form" onSubmit={onContactSubmit}>
+                  <input className="hp-field" tabIndex={-1} autoComplete="off" value={hp} onChange={(event) => setHp(event.target.value)} />
+                  <input placeholder="Nome" value={name} onChange={(event) => setName(event.target.value)} />
+                  <input type="email" placeholder="Email" required value={emailField} onChange={(event) => setEmailField(event.target.value)} />
+                  <textarea rows={4} placeholder="Messaggio" required value={message} onChange={(event) => setMessage(event.target.value)} />
+                  <button type="submit" disabled={status === 'sending'}>{status === 'sending' ? 'Invio...' : 'Invia richiesta'}</button>
+                  {status === 'ok' && <p className="ok-msg">Messaggio inviato.</p>}
+                  {status === 'error' && <p className="err-msg">{errorMsg}</p>}
+                </form>
+              </section>
+            ) : (
               <div className="chat-stream">
-                {currentMessages.map((message, index) => (
-                  <article key={`${message.role}-${index}`} className={`msg msg-${message.role}`}>
-                    {message.text}
+                {currentMessages.map((chatMessage, index) => (
+                  <article key={`${chatMessage.role}-${index}`} className={`msg msg-${chatMessage.role}`}>
+                    {chatMessage.text}
                   </article>
                 ))}
                 {isLoading && <article className="msg msg-assistant">Sto recuperando le informazioni...</article>}
@@ -194,7 +252,7 @@ function App() {
             <button type="submit" disabled={isLoading}>Invia</button>
           </form>
 
-          {hasSelection && visibleHints.length > 0 && (
+          {hasSelection && activeSection !== 'contatti' && visibleHints.length > 0 && (
             <div className="hint-list">
               {visibleHints.map((hint) => (
                 <button key={hint} type="button" onClick={() => sendQuestion(hint)}>

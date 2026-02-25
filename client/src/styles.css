@@ -1,15 +1,5 @@
 :root {
   --brand: #009fb7;
-  --bg: #edf5f9;
-  --bg-2: #dcebf3;
-  --text: #10252d;
-  --muted: #5e7882;
-  --bubble-surface: #f9fcfd;
-  --ring: rgba(0, 159, 183, 0.33);
-  --glow: rgba(0, 159, 183, 0.16);
-}
-
-:root[data-theme='dark'] {
   --bg: #04131b;
   --bg-2: #082231;
   --text: #e8f6f9;
@@ -17,6 +7,16 @@
   --bubble-surface: #163342;
   --ring: rgba(93, 215, 234, 0.4);
   --glow: rgba(0, 159, 183, 0.22);
+}
+
+:root[data-theme='light'] {
+  --bg: #edf5f9;
+  --bg-2: #dcebf3;
+  --text: #10252d;
+  --muted: #5e7882;
+  --bubble-surface: #f9fcfd;
+  --ring: rgba(0, 159, 183, 0.33);
+  --glow: rgba(0, 159, 183, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -33,7 +33,7 @@ body {
   transition: background 0.9s cubic-bezier(0.22, 1, 0.36, 1), color 0.55s ease;
 }
 
-button, input { font: inherit; }
+button, input, textarea { font: inherit; }
 
 .app-shell {
   min-height: 100vh;
@@ -77,6 +77,8 @@ button, input { font: inherit; }
   transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), background 0.6s ease;
 }
 
+.theme-thumb img { width: 15px; height: 15px; }
+
 .theme-toggle.is-dark .theme-thumb {
   transform: translateX(28px);
   background: linear-gradient(145deg, #24485a, #132a35);
@@ -94,7 +96,7 @@ button, input { font: inherit; }
   width: min(950px, 100%);
   min-height: 54vh;
   max-height: 62vh;
-  margin: 0 auto;
+  margin: 1rem auto 0;
 }
 
 .bubble-btn {
@@ -119,15 +121,11 @@ button, input { font: inherit; }
     0 18px 24px rgba(0, 0, 0, 0.14),
     0 0 0 6px color-mix(in srgb, var(--brand) 8%, transparent);
   transform: scale(var(--scale));
-  transform-origin: center;
-  transition: transform 0.2s ease, box-shadow 0.35s ease, background 0.45s ease, border-color 0.45s ease;
+  transition: transform 0.2s ease, box-shadow 0.35s ease;
 }
 
 .bubble-btn:hover {
   transform: scale(calc(var(--scale) + 0.03));
-  box-shadow:
-    0 22px 30px rgba(0, 0, 0, 0.18),
-    0 0 0 7px color-mix(in srgb, var(--brand) 14%, transparent);
 }
 
 .bubble-btn strong { font-size: 0.68rem; line-height: 1.05; text-align: center; }
@@ -141,64 +139,22 @@ button, input { font: inherit; }
 .bubble-6 { --x: 16%; --y: 63%; }
 .bubble-7 { --x: 64%; --y: 63%; }
 
-.composer {
-  width: min(760px, calc(100vw - 1.7rem));
-  margin-inline: auto;
-}
-
-.composer.is-standalone { margin-top: 0.15rem; }
-
-.composer.is-docked {
-  position: sticky;
-  bottom: 0.65rem;
-}
-
-.chat-input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.38rem;
-  border: 1px solid var(--ring);
-  background: color-mix(in srgb, var(--bubble-surface) 87%, transparent);
-  border-radius: 999px;
-  padding: 0.3rem;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
-  transition: background 0.55s ease, border-color 0.55s ease;
-}
-
-.chat-input-wrap input {
-  flex: 1;
-  min-width: 0;
-  min-height: 42px;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  padding: 0 0.8rem;
-}
-
-.chat-input-wrap input:focus { outline: none; }
-
-.chat-input-wrap button {
-  border: 0;
-  min-height: 42px;
-  border-radius: 999px;
-  background: var(--brand);
-  color: #fff;
-  padding: 0 1rem;
-}
-
 .content-zone {
   width: min(900px, 100%);
   margin: 0 auto;
 }
 
-.content-zone h1 { margin: 0; font-size: 1.9rem; }
-
 .hero-image {
-  margin-top: 0.7rem;
+  margin-top: 0.2rem;
   width: 100%;
   border-radius: 18px;
   max-height: 220px;
   object-fit: cover;
+}
+
+.content-zone h1 {
+  margin: 0.6rem 0 0;
+  font-size: 1.95rem;
 }
 
 .chat-stream {
@@ -222,7 +178,49 @@ button, input { font: inherit; }
   font-weight: 600;
 }
 
-.msg-assistant { color: var(--text); }
+.contact-block {
+  margin-top: 0.7rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.contact-block p { margin: 0; color: var(--muted); }
+
+.contact-form {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.4rem;
+}
+
+.contact-form input,
+.contact-form textarea {
+  border: 1px solid var(--ring);
+  background: color-mix(in srgb, var(--bubble-surface) 75%, transparent);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+}
+
+.contact-form button {
+  border: 0;
+  border-radius: 12px;
+  padding: 0.65rem 1rem;
+  background: var(--brand);
+  color: white;
+  justify-self: start;
+}
+
+.hp-field { display: none; }
+.ok-msg { color: #4fd97e; margin: 0; }
+.err-msg { color: #ff7a7a; margin: 0; }
+
+.composer {
+  width: min(760px, calc(100vw - 1.7rem));
+  margin-inline: auto;
+}
+
+.composer.is-standalone { margin-top: 0.15rem; }
+.composer.is-docked { position: sticky; bottom: 0.65rem; }
 
 .dock-buttons {
   display: grid;
@@ -233,7 +231,7 @@ button, input { font: inherit; }
 
 .dock-btn {
   border: 1px solid var(--ring);
-  border-radius: 999px;
+  border-radius: 45% 55% 48% 52% / 52% 48% 52% 48%;
   min-height: 54px;
   background: color-mix(in srgb, var(--bubble-surface) 72%, transparent);
   color: var(--text);
@@ -245,8 +243,45 @@ button, input { font: inherit; }
 }
 
 .dock-btn small { font-size: 0.64rem; }
-.dock-btn.is-active,
-.dock-btn.dock-home { background: var(--brand); color: #fff; border-color: transparent; }
+.dock-btn.dock-home {
+  background: color-mix(in srgb, var(--bubble-surface) 72%, transparent);
+  color: var(--text);
+  border-color: var(--ring);
+}
+
+.dock-btn.is-active { background: var(--brand); color: #fff; border-color: transparent; }
+
+.chat-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.38rem;
+  border: 1px solid var(--ring);
+  background: color-mix(in srgb, var(--bubble-surface) 87%, transparent);
+  border-radius: 999px;
+  padding: 0.3rem;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
+}
+
+.chat-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0 0.8rem;
+}
+
+.chat-input-wrap input:focus { outline: none; }
+
+.chat-input-wrap button {
+  border: 0;
+  min-height: 42px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  padding: 0 1rem;
+}
 
 .hint-list {
   margin-top: 0.48rem;
@@ -270,11 +305,7 @@ button, input { font: inherit; }
     max-height: 68vh;
   }
 
-  .bubble-btn {
-    width: 150px;
-    height: 134px;
-  }
-
+  .bubble-btn { width: 150px; height: 134px; }
   .bubble-1 { --x: 18%; --y: 10%; }
   .bubble-2 { --x: 64%; --y: 10%; }
   .bubble-3 { --x: 9%; --y: 35%; }
